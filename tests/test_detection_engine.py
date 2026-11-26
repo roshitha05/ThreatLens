@@ -107,3 +107,73 @@ def test_privilege_change():
     alerts = detect_privilege_change([event], rule)
 
     assert len(alerts) == 1
+
+
+def test_sustained_brute_force_single_alert():
+    """A sustained burst should produce only one alert."""
+    logs = [
+        make_event(seconds=i * 5)
+        for i in range(10)
+    ]
+
+    alerts = detect_brute_force(logs, BRUTE_FORCE_RULE)
+
+    assert len(alerts) == 1
+
+
+def test_separate_brute_force_bursts():
+    """Separated attack bursts should generate separate alerts."""
+    first_burst = [
+        make_event(seconds=i * 5)
+        for i in range(5)
+    ]
+
+    second_burst = [
+        make_event(seconds=600 + i * 5)
+        for i in range(5)
+    ]
+
+    alerts = detect_brute_force(
+        first_burst + second_burst,
+        BRUTE_FORCE_RULE
+    )
+
+    assert len(alerts) == 2
+
+
+def test_unsorted_logs():
+    """Detection must work even if events are out of order."""
+    logs = [
+        make_event(seconds=i * 5)
+        for i in range(5)
+    ]
+
+    logs.reverse()
+
+    alerts = detect_brute_force(logs, BRUTE_FORCE_RULE)
+
+    assert len(alerts) == 1
+
+
+def test_successful_logins_not_brute_force():
+    """Successful logins must not trigger brute-force detection."""
+    logs = [
+        make_event(seconds=i * 5, status="SUCCESS")
+        for i in range(10)
+    ]
+
+    alerts = detect_brute_force(logs, BRUTE_FORCE_RULE)
+
+    assert alerts == []
+
+
+def test_detection_threshold_boundary():
+    """Five failures exactly 60 seconds apart should count."""
+    logs = [
+        make_event(seconds=seconds)
+        for seconds in [0, 15, 30, 45, 60]
+    ]
+
+    alerts = detect_brute_force(logs, BRUTE_FORCE_RULE)
+
+    assert len(alerts) == 1

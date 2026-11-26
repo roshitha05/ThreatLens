@@ -38,8 +38,9 @@ def create_alert(rule, event, description):
     }
 
 
+
 def detect_brute_force(logs, rule):
-    """Detect failed login attempts within a rolling time window."""
+    """Detect bursts of failed logins from the same source IP."""
     grouped = defaultdict(list)
     alerts = []
 
@@ -54,24 +55,35 @@ def detect_brute_force(logs, rule):
         events.sort(key=lambda event: event["timestamp"])
 
         window_start = 0
+        active_burst = False
 
         for index, event in enumerate(events):
             while (
-                event["timestamp"] - events[window_start]["timestamp"]
+                event["timestamp"] -
+                events[window_start]["timestamp"]
             ).total_seconds() > rule["time_window"]:
                 window_start += 1
 
             count = index - window_start + 1
 
-            if count == rule["threshold"]:
+            if count >= rule["threshold"] and not active_burst:
                 description = (
                     f"{count} failed login attempts from "
-                    f"{source_ip} within {rule['time_window']} seconds"
+                    f"{source_ip} within "
+                    f"{rule['time_window']} seconds"
                 )
 
-                alerts.append(create_alert(rule, event, description))
+                alerts.append(
+                    create_alert(rule, event, description)
+                )
+
+                active_burst = True
+
+            elif count < rule["threshold"]:
+                active_burst = False
 
     return alerts
+
 
 
 def detect_unusual_login(logs, rule):

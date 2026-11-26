@@ -60,3 +60,17 @@ def test_parse_csv(tmp_path):
 def test_missing_file():
     with pytest.raises(FileNotFoundError):
         parse_logs("nonexistent_logs.csv")
+
+def test_csv_with_leading_blank_line(tmp_path):
+    file = tmp_path / "blank_line_logs.csv"
+
+    file.write_text(
+        "\n"
+        "timestamp,source_ip,username,event_type,status\n"
+        "2026-11-25T10:00:01Z,192.168.1.10,admin,LOGIN,FAILED\n"
+    )
+
+    logs = parse_logs(file)
+
+    assert len(logs) == 1
+    assert logs[0]["username"] == "admin"

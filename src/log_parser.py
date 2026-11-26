@@ -55,8 +55,10 @@ def parse_logs(file_path):
     if not file_path.exists():
         raise FileNotFoundError(f"Log file not found: {file_path}")
 
-    with file_path.open("r", encoding="utf-8", newline="") as file:
-        reader = csv.DictReader(file)
+    with file_path.open("r", encoding="utf-8-sig", newline="") as file:
+        reader = csv.DictReader(
+            line for line in file if line.strip()
+        )
 
         if not reader.fieldnames or not REQUIRED_FIELDS.issubset(
             reader.fieldnames
