@@ -1,0 +1,14 @@
+
+id: TL-001
+name: Brute Force Detection
+description: Detect repeated failed login attempts from one IP address
+
+event_type: LOGIN
+status: FAILED
+
+group_by: source_ip
+threshold: 5
+time_window: 60
+
+severity: HIGH
+enabled: true

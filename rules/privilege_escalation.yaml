@@ -1,0 +1,10 @@
+
+id: TL-003
+name: Privileged Account Activity
+description: Detect privileged account modifications
+
+event_type: PRIVILEGE_CHANGE
+status: SUCCESS
+
+severity: HIGH
+enabled: true
