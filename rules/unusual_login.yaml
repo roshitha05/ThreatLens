@@ -13,3 +13,24 @@ working_hours:
 
 severity: MEDIUM
 enabled: true
+
+
+id: TL-002
+name: Unusual Login Detection
+description: Detect successful logins outside configured working hours
+
+event_type: LOGIN
+status: SUCCESS
+
+working_hours:
+  start: 9
+  end: 18
+  timezone: Asia/Singapore
+
+severity: MEDIUM
+enabled: true
+
+mitre_attack:
+  tactic: Initial Access
+  technique_id: T1078
+  technique: Valid Accounts

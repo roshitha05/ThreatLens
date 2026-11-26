@@ -8,3 +8,19 @@ status: SUCCESS
 
 severity: HIGH
 enabled: true
+
+
+id: TL-003
+name: Privileged Account Activity
+description: Detect successful privileged account modifications
+
+event_type: PRIVILEGE_CHANGE
+status: SUCCESS
+
+severity: HIGH
+enabled: true
+
+mitre_attack:
+  tactic: Privilege Escalation
+  technique_id: T1098
+  technique: Account Manipulation
