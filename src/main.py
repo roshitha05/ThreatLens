@@ -1,8 +1,16 @@
-
+\
 from pathlib import Path
 
 from src.log_parser import parse_logs
 from src.detection_engine import load_rules, run_detection
+from src.database import (
+    connect_database,
+    get_alert_summary,
+)
+from src.alert_manager import (
+    process_alerts,
+    display_security_report,
+)
 
 
 def main():
@@ -10,30 +18,35 @@ def main():
 
     log_file = project_root / "data" / "sample_logs.csv"
     rules_directory = project_root / "rules"
+    database_file = project_root / "data" / "threatlens.db"
 
     print("=" * 50)
     print("          THREATLENS SECURITY PIPELINE")
     print("=" * 50)
 
+    print("\n[INFO] Loading security logs...")
     logs = parse_logs(log_file)
+
+    print("[INFO] Loading detection rules...")
     rules = load_rules(rules_directory)
 
-    print(f"\n[INFO] Security events loaded: {len(logs)}")
-    print(f"[INFO] Active detection rules: {len(rules)}")
-
+    print("[INFO] Running threat detection...")
     alerts = run_detection(logs, rules)
 
-    print(f"\n[RESULT] Threats detected: {len(alerts)}")
+    print("[INFO] Connecting to SQLite database...")
 
-    for alert in alerts:
-        print("\n" + "-" * 50)
-        print(f"[{alert['severity']}] {alert['threat_type']}")
-        print(f"Source IP: {alert['source_ip']}")
-        print(f"Username: {alert['username']}")
-        print(f"Detected At: {alert['detected_at']}")
-        print(f"Description: {alert['description']}")
+    with connect_database(database_file) as connection:
+        results = process_alerts(connection, alerts)
+        summary = get_alert_summary(connection)
 
-    print("\n[INFO] Detection pipeline completed.")
+    display_security_report(
+        len(logs),
+        alerts,
+        summary,
+        results,
+    )
+
+    print("\n[SUCCESS] ThreatLens pipeline completed.")
 
 
 if __name__ == "__main__":
